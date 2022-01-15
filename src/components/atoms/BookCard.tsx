@@ -8,20 +8,32 @@ import {
   Grid,
   Typography
 } from '@material-ui/core';
-import { useEffect, useState } from 'react';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import { Book } from 'src/types/book';
+import ReactStars from 'react-rating-stars-component';
+import Label from '../Label';
 
 const useStyles = makeStyles((theme: Theme) => ({
   cardHeader: {
-    backgroundColor: '#773544',
+    backgroundColor: theme.palette.primary.main,
     color: theme.palette.common.white,
   },
-  headerText: {
+  cardContent: {
     width: '95%',
+  },
+  headerText: {
     'text-overflow': 'ellipsis',
     'white-space': 'nowrap',
     overflow: 'hidden',
+  },
+  description: {
+    'text-overflow': 'ellipsis',
+    overflow: 'hidden',
+    display: '-webkit-box',
+    '-webkit-line-clamp': 10,
+    '-webkit-box-orient': 'vertical',
+    marginTop: '8px',
+    height: '75px'
   },
   title: {
     color: '#f89c00',
@@ -43,10 +55,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     textAlign: 'center',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: '1rem'
   },
   cardButton: {
-    padding: '10px 30px',
+    padding: '5px 10px',
     marginBottom: '30px'
   }
 }));
@@ -54,24 +65,22 @@ const useStyles = makeStyles((theme: Theme) => ({
 const BookCard = (props: { items: Array<Book> }) => {
   const classes = useStyles();
   const { items } = props;
-  const [expands, setExpands] = useState<any[]>([]);
-  useEffect(() => {
-    const exec = async () => {
-      const ele = [];
-      items.map(() => (
-        ele.push(false)
-      ));
-      setExpands(ele);
-    };
-    exec();
-  }, []);
+
+  const ratingChanged = async (rate: number) => {
+    console.log(rate);
+  };
+
+  const read = async (item: any) => {
+    // eslint-disable-next-line no-alert
+    alert(item.title);
+  };
 
   return (
     <Grid
       container
       spacing={3}
     >
-      {items.map((item: any, i) => (
+      {items.map((item: any) => (
         <Grid
           key={item.book_id}
           item
@@ -81,7 +90,7 @@ const BookCard = (props: { items: Array<Book> }) => {
         >
           <Card variant="outlined">
             <CardHeader
-              classes={{ title: classes.headerText, root: classes.cardHeader }}
+              classes={{ title: classes.headerText, root: classes.cardHeader, content: classes.cardContent }}
               title={item.title}
             />
             <CardContent>
@@ -91,11 +100,53 @@ const BookCard = (props: { items: Array<Book> }) => {
                 {item.author}
               </Typography>
               <Box
+                className={classes.description}
+              >
+                {item.description}
+              </Box>
+              <Grid
+                container
+                justifyContent="space-between"
                 sx={{
-                  height: '60px'
+                  mt: 2
                 }}
               >
-                {!expands[i] ? `${item.description.slice(0, 50)}` : item.description}
+                <Grid item>
+                  <ReactStars
+                    count={5}
+                    onChange={ratingChanged}
+                    size={24}
+                    activeColor="#ff9800"
+                    value={3}
+                  />
+                </Grid>
+                <Grid item>
+                  <Typography
+                    align="center"
+                    color="success.main"
+                    variant="subtitle2"
+                  >
+                    <Label color={item.rate > 4 ? 'success' : 'warning'}>
+                      {item.rate ? item.rate : 'No review'}
+                    </Label>
+                  </Typography>
+                </Grid>
+              </Grid>
+              <Box
+                sx={{
+                  mt: 2,
+                  mb: 2
+                }}
+              >
+                <Typography
+                  align="center"
+                  color="success.main"
+                  variant="subtitle2"
+                >
+                  <Label color="primary">
+                    {item.rated_users > 0 ? `${item.rated_users} reviews` : 'No review'}
+                  </Label>
+                </Typography>
               </Box>
             </CardContent>
             <CardActions className={classes.actionCard}>
@@ -103,7 +154,7 @@ const BookCard = (props: { items: Array<Book> }) => {
                 className={classes.cardButton}
                 variant="outlined"
                 color="primary"
-              // onClick={() => isModalOpened(i)}
+                onClick={() => read(item)}
               >
                 Read
               </Button>
