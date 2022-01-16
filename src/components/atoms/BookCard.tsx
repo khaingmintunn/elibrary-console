@@ -12,6 +12,10 @@ import { makeStyles, Theme } from '@material-ui/core/styles';
 import { Book } from 'src/types/book';
 import ReactStars from 'react-rating-stars-component';
 import Label from '../Label';
+import { Rate } from 'src/types/rate';
+import { user } from 'src/static/user';
+// import { getBook, createRate } from 'src/services/book';
+import { FC } from 'react';
 
 const useStyles = makeStyles((theme: Theme) => ({
   cardHeader: {
@@ -62,17 +66,24 @@ const useStyles = makeStyles((theme: Theme) => ({
   }
 }));
 
-const BookCard = (props: { items: Array<Book> }) => {
-  const classes = useStyles();
-  const { items } = props;
+interface BookCardProps {
+  books: Array<Book>,
+  rates: Array<Rate>
+  ratingChanged?: (rate: number, book: Book) => void;
+}
 
-  const ratingChanged = async (rate: number) => {
-    console.log(rate);
-  };
+const BookCard: FC<BookCardProps> = (props) => {
+  const classes = useStyles();
+  const { books, rates, ratingChanged } = props;
 
   const read = async (item: any) => {
     // eslint-disable-next-line no-alert
     alert(item.title);
+  };
+
+  const rateValue = (book: Book) => {
+    const bookRate = rates.find((rate: Rate) => rate.book_id === book.book_id && rate.user_id === user.user_id)?.rate;
+    return bookRate && bookRate > -1 ? bookRate : 0;
   };
 
   return (
@@ -80,9 +91,9 @@ const BookCard = (props: { items: Array<Book> }) => {
       container
       spacing={3}
     >
-      {items.map((item: any) => (
+      {books.map((book: Book) => (
         <Grid
-          key={item.book_id}
+          key={book.book_id}
           item
           xl={3}
           xs={6}
@@ -91,18 +102,18 @@ const BookCard = (props: { items: Array<Book> }) => {
           <Card variant="outlined">
             <CardHeader
               classes={{ title: classes.headerText, root: classes.cardHeader, content: classes.cardContent }}
-              title={item.title}
+              title={book.title}
             />
             <CardContent>
               <Typography
                 className={classes.title}
               >
-                {item.author}
+                {book.author}
               </Typography>
               <Box
                 className={classes.description}
               >
-                {item.description}
+                {book.description}
               </Box>
               <Grid
                 container
@@ -114,10 +125,10 @@ const BookCard = (props: { items: Array<Book> }) => {
                 <Grid item>
                   <ReactStars
                     count={5}
-                    onChange={ratingChanged}
+                    onChange={(value) => ratingChanged(value, book)}
                     size={24}
                     activeColor="#ff9800"
-                    value={3}
+                    value={rateValue(book)}
                   />
                 </Grid>
                 <Grid item>
@@ -126,8 +137,8 @@ const BookCard = (props: { items: Array<Book> }) => {
                     color="success.main"
                     variant="subtitle2"
                   >
-                    <Label color={item.rate > 4 ? 'success' : 'warning'}>
-                      {item.rate ? item.rate : 'No review'}
+                    <Label color={book.rate > 4 ? 'success' : 'warning'}>
+                      {book.rate ? book.rate : 'No review'}
                     </Label>
                   </Typography>
                 </Grid>
@@ -144,7 +155,7 @@ const BookCard = (props: { items: Array<Book> }) => {
                   variant="subtitle2"
                 >
                   <Label color="primary">
-                    {item.rated_users > 0 ? `${item.rated_users} reviews` : 'No review'}
+                    {book.rated_users > 0 ? `${book.rated_users} reviews` : 'No review'}
                   </Label>
                 </Typography>
               </Box>
@@ -154,7 +165,7 @@ const BookCard = (props: { items: Array<Book> }) => {
                 className={classes.cardButton}
                 variant="outlined"
                 color="primary"
-                onClick={() => read(item)}
+                onClick={() => read(book)}
               >
                 Read
               </Button>
